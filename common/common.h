@@ -24,6 +24,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <functional>
 using namespace std;
 
 #define LE(x) _Swap(x)
@@ -138,6 +139,7 @@ public:
     };
 
 public:
+    static function<void(string)> g_callback;
     static bool IsDebug();
     static void Print(const char *szLog);
     static void PrintV(const char *szFormatArgs, ...);

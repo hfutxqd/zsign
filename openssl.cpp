@@ -667,6 +667,7 @@ bool ZSignAsset::Init(const string &strSignerCertFile, const string &strSignerPK
 	{
 		if (jvProv.readPList(strProvContent))
 		{
+            m_strApplicationId = jvProv["Entitlements"]["application-identifier"].asCString();
 			m_strTeamId = jvProv["TeamIdentifier"][0].asCString();
 			if (m_strEntitlementsData.empty())
 			{
@@ -695,6 +696,12 @@ bool ZSignAsset::Init(const string &strSignerCertFile, const string &strSignerPK
 			{
 				BIO_reset(bioPKey);
 				PKCS12 *p12 = d2i_PKCS12_bio(bioPKey, NULL);
+				if (!p12)
+				{
+					FILE *p12_file = fopen(strSignerPKeyFile.c_str(), "rb");
+					d2i_PKCS12_fp(p12_file, &p12);
+					fclose(p12_file);
+				}
 				if (NULL != p12)
 				{
 					if (0 == PKCS12_parse(p12, strPassword.c_str(), &evpPKey, &x509Cert, NULL))

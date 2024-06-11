@@ -7,6 +7,7 @@
 
 ZAppBundle::ZAppBundle()
 {
+    m_pSignAssets = NULL;
 	m_pSignAsset = NULL;
 	m_bForceSign = false;
 	m_bWeakInject = false;
@@ -435,6 +436,27 @@ bool ZAppBundle::SignNode(JValue &jvNode)
 		macho.InjectDyLib(m_bWeakInject, m_strDyLibPath.c_str(), bForceSign);
 	}
 
+    if (m_pSignAssets)
+    {
+        function<bool(string,string)> endsWith = [](const string& str, const string& suffix) {
+            return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
+        };
+
+        for (std::list<ZSignAsset>::reverse_iterator it = (*m_pSignAssets).rbegin(); it != (*m_pSignAssets).rend(); ++it)
+        {
+            m_pSignAsset = &(*it);
+            if (endsWith(m_pSignAsset->m_strApplicationId, strBundleId))
+            {
+                if (!WriteFile(m_pSignAsset->m_strProvisionData, "%s/%s/embedded.mobileprovision", m_strAppFolder.c_str(), strFolder.c_str()))
+                {   //embedded.mobileprovision
+                    ZLog::ErrorV(">>> Can't Write embedded.mobileprovision!\n");
+                    return false;
+                }
+                break;
+            }
+        }
+    }
+
 	if (!macho.Sign(m_pSignAsset, bForceSign, strBundleId, strInfoPlistSHA1, strInfoPlistSHA256, strCodeResData))
 	{
 		return false;
@@ -595,12 +617,6 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
 		}
 	}
 
-	if (!WriteFile(pSignAsset->m_strProvisionData, "%s/embedded.mobileprovision", m_strAppFolder.c_str()))
-	{ //embedded.mobileprovision
-		ZLog::ErrorV(">>> Can't Write embedded.mobileprovision!\n");
-		return false;
-	}
-
 	if (!strDyLibFile.empty())
 	{ //inject dylib
 		string strDyLibData;
@@ -662,4 +678,18 @@ bool ZAppBundle::SignFolder(ZSignAsset *pSignAsset,
 	}
 
 	return false;
+}
+
+bool ZAppBundle::SignFolder(std::list<ZSignAsset> *pSignAssets
+                            , const string &strFolder
+                            , const string &strBundleID
+                            , const string &strBundleVersion
+                            , const string &strDisplayName
+                            , const string &strDyLibFile
+                            , bool bForce
+                            , bool bWeakInject
+                            , bool bEnableCache)
+{
+    m_pSignAssets = pSignAssets;
+    return SignFolder(&m_pSignAssets->front(), strFolder, strBundleID, strBundleVersion, strDisplayName, strDyLibFile, bForce, bWeakInject, bEnableCache);
 }

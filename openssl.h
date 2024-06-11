@@ -20,6 +20,7 @@ public:
 	string m_strSubjectCN;
 	string m_strProvisionData;
 	string m_strEntitlementsData;
+    string m_strApplicationId;
 
 private:
 	void *m_evpPKey;

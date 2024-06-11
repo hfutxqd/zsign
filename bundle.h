@@ -2,6 +2,7 @@
 #include "common/common.h"
 #include "common/json.h"
 #include "openssl.h"
+#include <list>
 
 class ZAppBundle
 {
@@ -10,6 +11,7 @@ public:
 
 public:
 	bool SignFolder(ZSignAsset *pSignAsset, const string &strFolder, const string &strBundleID, const string &strBundleVersion, const string &strDisplayName, const string &strDyLibFile, bool bForce, bool bWeakInject, bool bEnableCache);
+    bool SignFolder(std::list<ZSignAsset> *pSignAssets, const string &strFolder, const string &strBundleID, const string &strBundleVersion, const string &strDisplayName, const string &strDyLibFile, bool bForce, bool bWeakInject, bool bEnableCache);
 
 private:
 	bool SignNode(JValue &jvNode);
@@ -31,6 +33,7 @@ private:
 	bool m_bWeakInject;
 	string m_strDyLibPath;
 	ZSignAsset *m_pSignAsset;
+    list<ZSignAsset> *m_pSignAssets;
 
 public:
 	string m_strAppFolder;
